@@ -1,0 +1,46 @@
+name: Deploy BoomBoom AI 
+
+on:
+  push:
+    branches: ["main"]
+    workflow-dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build Frontend
+        # This bundles app.ts into a browser-ready file
+        run: bun build ./app.ts --outdir ./dist
+
+      - name: Copy Static Files
+        # Copy HTML and CSS to the distribution folder
+        run: |
+          cp index.html dist/
+          cp style.css dist/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        
